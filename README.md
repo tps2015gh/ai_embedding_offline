@@ -48,7 +48,7 @@ start.bat
 # 1. Initialize the vector database
 go run cmd/main.go init
 
-# 2. Scan directories and create embeddings
+# 2. Scan directories and create embeddings (shows progress)
 go run cmd/main.go scan
 
 # 3. Start the web server
@@ -56,6 +56,21 @@ go run cmd/main.go serve
 ```
 
 Then open http://localhost:8080 in your browser.
+
+### Scan Progress
+
+The scan command shows real-time progress:
+- 🔍 Scanning: [directory]
+- 📄 Files: X | Chunks: Y | Skipped dirs: Z
+- ✅ Complete: X files, Y chunks, Z dirs skipped
+
+### Data Storage
+
+- **Database**: `data/vectors.db` (SQLite)
+- **Error Log**: `data/errors.log`
+- **Scanned Paths**: `c:\dev\`, `C:\Users\admin\Documents`, `C:\Users\admin\Downloads`
+
+**Note**: Large codebases (10K+ files) may take 5-10 minutes to scan.
 
 ### Project Structure (Company Organization)
 
