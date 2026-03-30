@@ -39,13 +39,31 @@ AI Embedding Offline is a vector-based text similarity system that creates 40-di
 
 ### Installation
 
+**Quick Setup (Windows):**
 ```bash
-# Install Go dependencies
+# Run automated setup
+setup.bat
+```
+
+**Manual Setup:**
+```bash
+# 1. Install Go from https://go.dev/dl/
+
+# 2. Download dependencies
 go mod tidy
 
-# Install SQLite driver
-go get github.com/mattn/go-sqlite3
+# 3. Build executables
+go build -o ai_embedding.exe ./cmd/
+go build -o ngram.exe ./cmd/ngram/
+
+# 4. Train model
+ngram.exe train
+
+# 5. Start server
+ai_embedding.exe serve
 ```
+
+📖 **Full installation guide:** [docs/INSTALL.md](docs/INSTALL.md)
 
 ### Usage
 
