@@ -20,14 +20,19 @@ var textExtensions = map[string]bool{
 }
 
 // ScanDirectory scans a directory recursively for text files
-func ScanDirectory(rootPath string) ([]string, error) {
+func ScanDirectory(rootPath string, progressChan chan<- string) ([]string, error) {
 	var texts []string
 
-	logger.Info("scanner", "ScanDirectory", "Starting scan", rootPath)
+	if progressChan != nil {
+		progressChan <- fmt.Sprintf("🔍 Scanning: %s", rootPath)
+	}
+
+	fileCount := 0
+	chunkCount := 0
+	skipCount := 0
 
 	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			logger.Warning("scanner", "ScanDirectory", "Access denied", path)
 			return nil // Skip inaccessible files
 		}
 
@@ -37,9 +42,10 @@ func ScanDirectory(rootPath string) ([]string, error) {
 				"node_modules": true, ".git": true, ".svn": true,
 				"vendor": true, "bin": true, "obj": true,
 				"__pycache__": true, ".venv": true, "venv": true,
+				"dist": true, "build": true, "target": true,
 			}
 			if skipDirs[info.Name()] {
-				logger.Info("scanner", "ScanDirectory", "Skipping directory", info.Name())
+				skipCount++
 				return filepath.SkipDir
 			}
 			return nil
@@ -48,6 +54,13 @@ func ScanDirectory(rootPath string) ([]string, error) {
 		ext := strings.ToLower(filepath.Ext(path))
 		if !textExtensions[ext] {
 			return nil
+		}
+
+		fileCount++
+
+		// Show progress every 50 files
+		if fileCount%50 == 0 && progressChan != nil {
+			progressChan <- fmt.Sprintf("📄 Files: %d | Chunks: %d | Skipped dirs: %d", fileCount, chunkCount, skipCount)
 		}
 
 		// Read file content
@@ -60,15 +73,15 @@ func ScanDirectory(rootPath string) ([]string, error) {
 		// Split into chunks (by lines or size)
 		chunks := splitIntoChunks(string(content), path)
 		texts = append(texts, chunks...)
+		chunkCount += len(chunks)
 
 		return nil
 	})
 
-	if err != nil {
-		logger.Error("scanner", "ScanDirectory", err.Error(), rootPath)
+	logger.Info("scanner", "ScanDirectory", "Scan complete", fmt.Sprintf("Found %d chunks from %d files, skipped %d dirs", chunkCount, fileCount, skipCount))
+	if progressChan != nil {
+		progressChan <- fmt.Sprintf("✅ Complete: %d files, %d chunks, %d dirs skipped", fileCount, chunkCount, skipCount)
 	}
-
-	logger.Info("scanner", "ScanDirectory", "Scan complete", fmt.Sprintf("Found %d chunks", len(texts)))
 	return texts, err
 }
 

@@ -50,11 +50,26 @@ func main() {
 			"C:\\Users\\admin\\Downloads",
 		}
 
+		// Create progress channel
+		progressChan := make(chan string, 100)
+		doneChan := make(chan bool)
+
+		// Progress display goroutine
+		go func() {
+			for {
+				select {
+				case msg := <-progressChan:
+					fmt.Println("  ", msg)
+				case <-doneChan:
+					return
+				}
+			}
+		}()
+
 		// Scan all directories
 		var allTexts []string
 		for _, dir := range dirs {
-			logger.Info("main", "scan", fmt.Sprintf("Scanning directory: %s", dir), "")
-			texts, err := scanner.ScanDirectory(dir)
+			texts, err := scanner.ScanDirectory(dir, progressChan)
 			if err != nil {
 				logger.Warning("main", "scan", fmt.Sprintf("Error scanning %s", dir), err.Error())
 				log.Printf("Warning: Error scanning %s: %v", dir, err)
@@ -62,6 +77,8 @@ func main() {
 			}
 			allTexts = append(allTexts, texts...)
 		}
+
+		close(doneChan)
 
 		logger.Info("main", "scan", fmt.Sprintf("Found %d text chunks", len(allTexts)), "")
 		log.Printf("Found %d text chunks", len(allTexts))
@@ -84,7 +101,7 @@ func main() {
 		}
 
 		logger.Info("main", "scan", "Scan and embedding complete", "")
-		log.Println("Scan and embedding complete!")
+		log.Println("✅ Scan and embedding complete!")
 
 	case "serve":
 		log.Println("Starting web server on :8080...")
