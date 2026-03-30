@@ -4,7 +4,6 @@ import (
 	"ai_embedding_offline/internal/embedding"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"math"
 	"sort"
 	"sync"
