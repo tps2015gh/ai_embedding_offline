@@ -12,7 +12,7 @@
 
 ```bash
 # Run the setup script
-setup.bat
+.\setup.bat
 ```
 
 This will:
@@ -40,11 +40,11 @@ go build -o ai_embedding.exe ./cmd/
 # 5. Build n-gram tool
 go build -o ngram.exe ./cmd/ngram/
 
-# 6. Train model
-ngram.exe train
+# 6. Train model (PowerShell - use .\ prefix)
+.\ngram.exe train
 
 # 7. Start server
-ai_embedding.exe serve
+.\ai_embedding.exe serve
 ```
 
 ---

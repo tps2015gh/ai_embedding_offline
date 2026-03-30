@@ -77,10 +77,12 @@ ai_embedding.exe serve
 **Option 1: Using the executable (Windows)**
 
 ```bash
-# 1. Train the n-gram model (fast!)
-ngram.exe train
+# PowerShell (use .\ prefix)
+.\ngram.exe train
+.\ai_embedding.exe serve
 
-# 2. Start the web server
+# CMD (no prefix needed)
+ngram.exe train
 ai_embedding.exe serve
 ```
 
