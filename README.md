@@ -150,6 +150,8 @@ The distance calculation is optimized by:
 
 ### Documentation
 
+**📑 Start Here:** [docs/INDEX.md](docs/INDEX.md) - Complete documentation map with reading order
+
 **For AI Developers:**
 - **📘 [AI_DEV_GUIDE.md](docs/AI_DEV_GUIDE.md)** - Start here! Complete guide for next developers
 - **📗 [INTELLISENSE.md](docs/INTELLISENSE.md)** - IntelliSense feature documentation
