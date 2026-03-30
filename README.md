@@ -16,12 +16,18 @@ AI Embedding Offline is a vector-based text similarity system that creates 40-di
 📖 **New to AI embeddings?** Read our [Beginner's Guide](docs/BEGINNER_GUIDE.md) for simple explanations in English and Thai!
 
 ### Features
-- 📁 Scans code and text files from multiple directories
-- 🔢 Creates 40-dimensional vector embeddings
-- 🔍 Searches similar content using cosine similarity
-- 🎨 Interactive 2D visualization with zoom and pan
-- 💡 Shows word suggestions based on vector proximity
-- ⚡ Optimized distance calculation with filtering
+
+#### 🔮 Text Prediction (NEW!)
+- N-gram based next word prediction
+- Small model size (~100KB - 10MB)
+- Fast predictions (milliseconds)
+- Works offline
+- See [docs/NGRAM_PREDICTOR.md](docs/NGRAM_PREDICTOR.md)
+
+#### 📊 Vector Embeddings
+- 40-dimensional vector embeddings
+- Cosine similarity search
+- Interactive 2D visualization
 
 ### Installation
 
@@ -38,24 +44,32 @@ go get github.com/mattn/go-sqlite3
 **Option 1: Using the executable (Windows)**
 
 ```bash
-# Run the quick start script
-start.bat
+# 1. Train the n-gram model (fast!)
+ngram.exe train
+
+# 2. Start the web server
+ai_embedding.exe serve
 ```
 
 **Option 2: Using Go commands**
 
 ```bash
-# 1. Initialize the vector database
+# 1. Train the n-gram model
+go run cmd/ngram/main.go train
+
+# 2. Initialize the vector database (optional, for vector search)
 go run cmd/main.go init
 
-# 2. Scan directories and create embeddings (shows progress)
+# 3. Scan directories (optional, takes time)
 go run cmd/main.go scan
 
-# 3. Start the web server
+# 4. Start the web server
 go run cmd/main.go serve
 ```
 
-Then open http://localhost:8080 in your browser.
+Then open:
+- **Text Predictor**: http://localhost:8080/predict.html
+- **Vector Visualizer**: http://localhost:8080/
 
 ### Scan Progress
 

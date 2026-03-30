@@ -1,2 +1,4 @@
 add function to monitor error from textfile , update all app to send error message to text file . after fixed remove
     error to  solved_error.md
+
+Add amount of data to MD file ( only sum brief for what large this data set , this program ever use for test)

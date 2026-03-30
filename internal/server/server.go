@@ -2,6 +2,7 @@ package server
 
 import (
 	"ai_embedding_offline/internal/logger"
+	"ai_embedding_offline/internal/ngram"
 	"ai_embedding_offline/internal/vectorstore"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
+)
+
+var (
+	ngramModel *ngram.NGramModel
+	modelOnce  sync.Once
 )
 
 // Response represents API response
@@ -28,6 +35,17 @@ func StartServer(addr string) error {
 		return err
 	}
 
+	// Load n-gram model
+	modelOnce.Do(func() {
+		var err error
+		ngramModel, err = ngram.LoadModel("data/ngram_model.json")
+		if err != nil {
+			logger.Warning("server", "StartServer", "No n-gram model found, will create on demand", "")
+		} else {
+			logger.Info("server", "StartServer", fmt.Sprintf("N-gram model loaded: %d words", ngramModel.TotalWords), "")
+		}
+	})
+
 	// Serve static files
 	webDir := filepath.Join(".", "web")
 	fs := http.FileServer(http.Dir(webDir))
@@ -38,6 +56,8 @@ func StartServer(addr string) error {
 	http.HandleFunc("/api/vectors", handleGetVectors)
 	http.HandleFunc("/api/stats", handleStats)
 	http.HandleFunc("/api/suggest", handleSuggest)
+	http.HandleFunc("/api/ngram/predict", handleNGramPredict)
+	http.HandleFunc("/api/ngram/stats", handleNGramStats)
 
 	logger.Info("server", "StartServer", "Server starting on "+addr, "")
 	log.Printf("Server starting on %s", addr)
@@ -204,4 +224,67 @@ func enableCORS(w http.ResponseWriter) {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+}
+
+// handleNGramPredict handles n-gram prediction requests
+func handleNGramPredict(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if r.Method != "POST" {
+		sendError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Text  string `json:"text"`
+		Limit int    `json:"limit"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("server", "handleNGramPredict", "Invalid request", err.Error())
+		sendError(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Limit <= 0 {
+		req.Limit = 5
+	}
+
+	// Load model if not loaded
+	if ngramModel == nil {
+		var err error
+		ngramModel, err = ngram.LoadModel("data/ngram_model.json")
+		if err != nil {
+			logger.Error("server", "handleNGramPredict", "Failed to load model", err.Error())
+			sendError(w, "Model not trained yet", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	predictions := ngramModel.Predict(req.Text, req.Limit)
+	logger.Info("server", "handleNGramPredict", fmt.Sprintf("Predicted %d suggestions", len(predictions)), req.Text)
+	sendResponse(w, predictions)
+}
+
+// handleNGramStats returns n-gram model statistics
+func handleNGramStats(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if ngramModel == nil {
+		var err error
+		ngramModel, err = ngram.LoadModel("data/ngram_model.json")
+		if err != nil {
+			sendError(w, "Model not trained yet", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	stats := map[string]interface{}{
+		"total_words": ngramModel.TotalWords,
+		"unigrams":    len(ngramModel.Unigrams),
+		"bigrams":     len(ngramModel.Bigrams),
+		"trigrams":    len(ngramModel.Trigrams),
+	}
+
+	sendResponse(w, stats)
 }

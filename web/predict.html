@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Predictor - N-gram</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .predictions {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        .predictions h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .prediction-list {
+            list-style: none;
+        }
+        .prediction-item {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .prediction-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+        .prediction-word {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .prediction-score {
+            color: #999;
+            font-size: 14px;
+        }
+        .prediction-item:hover .prediction-score {
+            color: rgba(255,255,255,0.8);
+        }
+        .stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .example-text {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #888;
+        }
+        .example-text code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .example-text code:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 Text Predictor</h1>
+        <p class="subtitle">N-gram based next word prediction</p>
+
+        <div class="input-group">
+            <label for="input-text">Type your text:</label>
+            <input type="text" id="input-text" placeholder="e.g., func, if err, SELECT * FROM..." autocomplete="off">
+        </div>
+
+        <button onclick="predict()">Predict Next Word</button>
+
+        <div class="predictions" id="predictions-section" style="display: none;">
+            <h3>Suggestions:</h3>
+            <ul class="prediction-list" id="prediction-list"></ul>
+        </div>
+
+        <div class="stats" id="stats">
+            Loading model stats...
+        </div>
+
+        <div class="example-text">
+            Try: 
+            <code onclick="useExample('func')">func</code>
+            <code onclick="useExample('if err')">if err</code>
+            <code onclick="useExample('SELECT')">SELECT</code>
+            <code onclick="useExample('docker')">docker</code>
+            <code onclick="useExample('git')">git</code>
+        </div>
+    </div>
+
+    <script>
+        let modelStats = null;
+
+        // Load stats on page load
+        fetch('/api/ngram/stats')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    modelStats = data.data;
+                    document.getElementById('stats').innerHTML = 
+                        `📊 Model: <strong>${modelStats.total_words.toLocaleString()}</strong> words trained`;
+                }
+            });
+
+        // Predict function
+        async function predict() {
+            const input = document.getElementById('input-text').value.trim();
+            if (!input) return;
+
+            const response = await fetch('/api/ngram/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: input, limit: 5 })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                displayPredictions(result.data);
+            }
+        }
+
+        function displayPredictions(predictions) {
+            const section = document.getElementById('predictions-section');
+            const list = document.getElementById('prediction-list');
+            
+            list.innerHTML = '';
+            predictions.forEach((p, i) => {
+                const li = document.createElement('li');
+                li.className = 'prediction-item';
+                li.innerHTML = `
+                    <span class="prediction-word">${i + 1}. ${p.word}</span>
+                    <span class="prediction-score">${p.score.toFixed(1)}</span>
+                `;
+                li.onclick = () => {
+                    document.getElementById('input-text').value += ' ' + p.word;
+                    predict();
+                };
+                list.appendChild(li);
+            });
+
+            section.style.display = 'block';
+        }
+
+        function useExample(text) {
+            document.getElementById('input-text').value = text;
+            predict();
+        }
+
+        // Enter key to predict
+        document.getElementById('input-text').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') predict();
+        });
+    </script>
+</body>
+</html>
