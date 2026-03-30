@@ -2,7 +2,6 @@ package main
 
 import (
 	"ai_embedding_offline/internal/ngram"
-	"ai_embedding_offline/internal/scanner"
 	"fmt"
 	"log"
 	"os"
@@ -32,40 +31,42 @@ func main() {
 			"func main() { fmt.Println(\"Hello World\") }",
 			"func NewModel() *NGramModel { return &NGramModel{} }",
 			"if err != nil { return err }",
+			"if err != nil { log.Fatal(err) }",
+			"if err != nil { log.Fatalf(\"Failed: %v\", err) }",
 			"for i := 0; i < len(words); i++ { words[i] = strings.ToLower(words[i]) }",
 			"type Prediction struct { Word string; Score float64 }",
+			"type Vector struct { Text string; Embedding []float64 }",
+			"type NGramModel struct { Unigrams map[string]int; Bigrams map[string]map[string]int }",
 			"func (m *Model) Train(text string) { words := tokenize(text) }",
-			"database/sql encoding/json net/http",
-			"package main import ( \"fmt\" \"os\" )",
-			"SELECT * FROM users WHERE id = ?",
-			"CREATE TABLE vectors (id INTEGER PRIMARY KEY, text TEXT)",
+			"func CosineSimilarity(a, b []float64) float64 { dot := 0.0; return dot / (normA * normB) }",
+			"SELECT * FROM vectors WHERE id = ?",
+			"SELECT COUNT(*) FROM vectors",
+			"SELECT text, embedding FROM vectors ORDER BY similarity DESC LIMIT ?",
+			"INSERT INTO vectors (text, embedding) VALUES (?, ?)",
+			"CREATE TABLE vectors (id INTEGER PRIMARY KEY, text TEXT, embedding TEXT)",
 			"npm install express react axios",
 			"const App = () => { return <div>Hello</div> }",
-			"docker build -t myapp . docker run -p 8080:8080 myapp",
-			"git add . git commit -m \"update\" git push",
-			"python3 -m venv venv source venv/bin/activate",
-			"SELECT COUNT(*) FROM vectors WHERE similarity > 0.8",
-			"func CosineSimilarity(a, b []float64) float64 { dot := 0.0 }",
-			"INSERT INTO vectors (text, embedding) VALUES (?, ?)",
-			"http.HandleFunc(\"/api/search\", handleSearch)",
-			"response, err := http.Get(url)",
+			"docker build -t myapp . && docker run -p 8080:8080 myapp",
+			"git add . && git commit -m \"update\" && git push origin main",
+			"python3 -m venv venv && source venv/bin/activate",
+			"go mod init && go mod tidy && go build -o app.exe",
+			"go run cmd/main.go serve",
+			"func TestMain(t *testing.T) { assert.NotNil(t, model) }",
+			"func TestSearch(t *testing.T) { results, err := Search(\"query\", 10) }",
+			"response, err := http.Get(url) if err != nil { return nil, err }",
+			"defer response.Body.Close()",
+			"log.Printf(\"Server starting on %s\", addr)",
+			"log.Fatalf(\"Failed to create embeddings: %v\", err)",
 		}
 
 		for _, text := range trainingData {
 			model.Train(text)
 		}
 
-		// Also scan a small sample if available
-		fmt.Println("📁 Scanning sample files...")
-		dirs := []string{"c:\\dev\\ai_embedding_offline"}
-		for _, dir := range dirs {
-			texts, err := scanner.ScanDirectory(dir, nil)
-			if err == nil {
-				count := min(len(texts), 100)
-				for _, text := range texts[:count] {
-					model.Train(text)
-				}
-			}
+		// Also train on code samples file
+		if codeSamples, err := os.ReadFile("data/code_samples.txt"); err == nil {
+			model.Train(string(codeSamples))
+			fmt.Println("📁 Trained on code_samples.txt")
 		}
 
 		// Save model

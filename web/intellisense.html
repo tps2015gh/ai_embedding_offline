@@ -364,26 +364,42 @@
             loading.classList.add('visible');
 
             try {
-                // Get phrase predictions (multi-word)
+                // Try phrase predictions first
                 const response = await fetch('/api/ngram/predict-phrase', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, maxWords: 3, limit: 6 })
+                    body: JSON.stringify({ text, maxWords: 2, limit: 6 })
                 });
 
                 const result = await response.json();
                 
-                if (result.success && result.data.length > 0) {
-                    predictions = result.data.map(p => ({
-                        word: p.phrase,
-                        score: p.score,
-                        isPhrase: true
-                    }));
-                    selectedIndex = 0;
-                    showIntellisense(predictions);
-                } else {
-                    hideIntellisense();
+                // Fallback to regular predict if phrase results are poor
+                if (!result.success || !result.data || result.data.length === 0) {
+                    const simpleResponse = await fetch('/api/ngram/predict', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text, limit: 8 })
+                    });
+                    const simpleResult = await simpleResponse.json();
+                    
+                    if (simpleResult.success && simpleResult.data.length > 0) {
+                        predictions = simpleResult.data;
+                        selectedIndex = 0;
+                        showIntellisense(predictions);
+                    } else {
+                        hideIntellisense();
+                    }
+                    return;
                 }
+                
+                // Use phrase predictions
+                predictions = result.data.map(p => ({
+                    word: p.phrase,
+                    score: p.score,
+                    isPhrase: true
+                }));
+                selectedIndex = 0;
+                showIntellisense(predictions);
             } catch (error) {
                 console.error('Prediction failed:', error);
             } finally {

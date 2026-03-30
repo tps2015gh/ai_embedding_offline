@@ -1,0 +1,204 @@
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello World")
+}
+
+func NewModel() *NGramModel {
+	return &NGramModel{}
+}
+
+func CreateEmbeddings(texts []string, dimensions int) ([]Vector, error) {
+	vectors := make([]Vector, 0, len(texts))
+	for _, text := range texts {
+		embedding := generateEmbedding(text, dimensions)
+		vectors = append(vectors, Vector{
+			Text:      text,
+			Embedding: embedding,
+		})
+	}
+	return vectors, nil
+}
+
+func generateEmbedding(text string, dimensions int) []float64 {
+	embedding := make([]float64, dimensions)
+	for i := 0; i < dimensions; i++ {
+		embedding[i] = float64(i) / float64(dimensions)
+	}
+	return embedding
+}
+
+func CosineSimilarity(a, b []float64) float64 {
+	dotProduct := 0.0
+	normA := 0.0
+	normB := 0.0
+	for i := range a {
+		dotProduct += a[i] * b[i]
+		normA += a[i] * a[i]
+		normB += b[i] * b[i]
+	}
+	return dotProduct / (normA * normB)
+}
+
+func SearchSimilar(queryText string, limit int) ([]VectorRecord, error) {
+	results, err := vectorstore.SearchSimilar(queryText, limit)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func handleSearch(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Query string `json:"query"`
+		Limit int    `json:"limit"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		sendError(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	results, err := vectorstore.SearchSimilar(req.Query, req.Limit)
+	if err != nil {
+		sendError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	sendResponse(w, results)
+}
+
+func handleNGramPredict(w http.ResponseWriter, r *http.Request) {
+	predictions := ngramModel.Predict(req.Text, req.Limit)
+	sendResponse(w, predictions)
+}
+
+func StartServer(addr string) error {
+	if err := vectorstore.InitDB(); err != nil {
+		return err
+	}
+	http.HandleFunc("/api/search", handleSearch)
+	http.HandleFunc("/api/ngram/predict", handleNGramPredict)
+	log.Printf("Server starting on %s", addr)
+	return http.ListenAndServe(addr, nil)
+}
+
+if err != nil {
+	log.Fatalf("Failed: %v", err)
+}
+
+if err != nil {
+	return err
+}
+
+if err != nil {
+	sendError(w, err.Error(), http.StatusInternalServerError)
+	return
+}
+
+for _, v := range vectors {
+	embeddingJSON, _ := json.Marshal(v.Embedding)
+	_, err = stmt.Exec(v.Text, string(embeddingJSON), posX, posY)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+}
+
+for i := 0; i < len(words); i++ {
+	m.Unigrams[words[i]]++
+	m.TotalWords++
+}
+
+for i := 0; i < len(words)-1; i++ {
+	if m.Bigrams[words[i]] == nil {
+		m.Bigrams[words[i]] = make(map[string]int)
+	}
+	m.Bigrams[words[i]][words[i+1]]++
+}
+
+for i := 0; i < len(words)-2; i++ {
+	key := words[i] + " " + words[i+1]
+	if m.Trigrams[key] == nil {
+		m.Trigrams[key] = make(map[string]int)
+	}
+	m.Trigrams[key][words[i+2]]++
+}
+
+type Vector struct {
+	Text      string    `json:"text"`
+	Embedding []float64 `json:"embedding"`
+}
+
+type VectorRecord struct {
+	ID        int64   `json:"id"`
+	Text      string  `json:"text"`
+	Embedding []float64 `json:"embedding"`
+	PositionX float64 `json:"position_x"`
+	PositionY float64 `json:"position_y"`
+}
+
+type Prediction struct {
+	Word  string  `json:"word"`
+	Score float64 `json:"score"`
+}
+
+type NGramModel struct {
+	Unigrams  map[string]int
+	Bigrams   map[string]map[string]int
+	Trigrams  map[string]map[string]int
+	TotalWords int
+}
+
+SELECT * FROM vectors WHERE id = ?
+SELECT COUNT(*) FROM vectors
+SELECT text, embedding FROM vectors ORDER BY similarity DESC LIMIT ?
+INSERT INTO vectors (text, embedding) VALUES (?, ?)
+CREATE TABLE vectors (id INTEGER PRIMARY KEY, text TEXT, embedding TEXT)
+CREATE INDEX idx_vectors_text ON vectors(text)
+
+docker build -t myapp .
+docker run -p 8080:8080 myapp
+docker compose up -d
+docker ps
+docker logs -f myapp
+
+git add .
+git commit -m "update"
+git push origin main
+git pull
+git status
+git log --oneline
+
+npm install express
+npm install react react-dom
+npm install axios
+npm run build
+npm run dev
+npm start
+
+go mod init
+go mod tidy
+go build -o app.exe
+go run main.go
+go test ./...
+
+python3 -m venv venv
+source venv/bin/activate
+pip install requests
+pip install numpy
+python main.py
+
+func TestMain(t *testing.T) {
+func TestSearch(t *testing.T) {
+func TestEmbedding(t *testing.T) {
+func BenchmarkSearch(b *testing.B) {
+
+const PORT = 8080
+var db *sql.DB
+var model *NGramModel
+
+response, err := http.Get(url)
+if err != nil {
+	return nil, err
+}
+defer response.Body.Close()
