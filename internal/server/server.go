@@ -1,8 +1,10 @@
 package server
 
 import (
+	"ai_embedding_offline/internal/logger"
 	"ai_embedding_offline/internal/vectorstore"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +21,10 @@ type Response struct {
 // StartServer starts the HTTP server
 func StartServer(addr string) error {
 	// Initialize database
+	logger.Info("server", "StartServer", "Starting server", addr)
+
 	if err := vectorstore.InitDB(); err != nil {
+		logger.Error("server", "StartServer", "Failed to initialize database", err.Error())
 		return err
 	}
 
@@ -34,6 +39,7 @@ func StartServer(addr string) error {
 	http.HandleFunc("/api/stats", handleStats)
 	http.HandleFunc("/api/suggest", handleSuggest)
 
+	logger.Info("server", "StartServer", "Server starting on "+addr, "")
 	log.Printf("Server starting on %s", addr)
 	return http.ListenAndServe(addr, nil)
 }
@@ -43,6 +49,7 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
 
 	if r.Method != "POST" {
+		logger.Warning("server", "handleSearch", "Method not allowed", r.Method)
 		sendError(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -53,6 +60,7 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("server", "handleSearch", "Invalid request", err.Error())
 		sendError(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
@@ -61,12 +69,16 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 		req.Limit = 20
 	}
 
+	logger.Info("server", "handleSearch", "Search query", req.Query)
+
 	results, err := vectorstore.SearchSimilar(req.Query, req.Limit)
 	if err != nil {
+		logger.Error("server", "handleSearch", "Search failed", err.Error())
 		sendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logger.Info("server", "handleSearch", fmt.Sprintf("Found %d results", len(results)), req.Query)
 	sendResponse(w, results)
 }
 
@@ -76,10 +88,12 @@ func handleGetVectors(w http.ResponseWriter, r *http.Request) {
 
 	vectors, err := vectorstore.GetAllVectors()
 	if err != nil {
+		logger.Error("server", "handleGetVectors", "Failed to get vectors", err.Error())
 		sendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logger.Info("server", "handleGetVectors", fmt.Sprintf("Returning %d vectors", len(vectors)), "")
 	sendResponse(w, vectors)
 }
 
@@ -89,6 +103,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 
 	stats, err := vectorstore.GetVectorStats()
 	if err != nil {
+		logger.Error("server", "handleStats", "Failed to get stats", err.Error())
 		sendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -101,6 +116,7 @@ func handleSuggest(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
 
 	if r.Method != "POST" {
+		logger.Warning("server", "handleSuggest", "Method not allowed", r.Method)
 		sendError(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -110,13 +126,17 @@ func handleSuggest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("server", "handleSuggest", "Invalid request", err.Error())
 		sendError(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
+	logger.Info("server", "handleSuggest", "Suggestion request", req.Text)
+
 	// Find similar vectors and extract potential next words
 	suggestions, err := generateSuggestions(req.Text)
 	if err != nil {
+		logger.Error("server", "handleSuggest", "Failed to generate suggestions", err.Error())
 		sendError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

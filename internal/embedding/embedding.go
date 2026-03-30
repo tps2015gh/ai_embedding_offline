@@ -1,7 +1,9 @@
 package embedding
 
 import (
+	"ai_embedding_offline/internal/logger"
 	"crypto/sha256"
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -20,13 +22,23 @@ func CreateEmbeddings(texts []string, dimensions int) ([]Vector, error) {
 	rand.Seed(time.Now().UnixNano())
 
 	vectors := make([]Vector, 0, len(texts))
+	errorCount := 0
 
 	for _, text := range texts {
+		if len(text) < 3 {
+			logger.Warning("embedding", "CreateEmbeddings", "Text too short, skipping", text)
+			continue
+		}
+
 		embedding := generateEmbedding(text, dimensions)
 		vectors = append(vectors, Vector{
 			Text:      text,
 			Embedding: embedding,
 		})
+	}
+
+	if errorCount > 0 {
+		logger.Warning("embedding", "CreateEmbeddings", fmt.Sprintf("Completed with %d errors", errorCount), "")
 	}
 
 	return vectors, nil
@@ -108,4 +120,12 @@ func EuclideanDistance(a, b []float64) float64 {
 	}
 
 	return math.Sqrt(sum)
+}
+
+// min returns the minimum of two integers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

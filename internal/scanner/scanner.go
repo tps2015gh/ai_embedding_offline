@@ -1,6 +1,8 @@
 package scanner
 
 import (
+	"ai_embedding_offline/internal/logger"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -21,8 +23,11 @@ var textExtensions = map[string]bool{
 func ScanDirectory(rootPath string) ([]string, error) {
 	var texts []string
 
+	logger.Info("scanner", "ScanDirectory", "Starting scan", rootPath)
+
 	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			logger.Warning("scanner", "ScanDirectory", "Access denied", path)
 			return nil // Skip inaccessible files
 		}
 
@@ -34,6 +39,7 @@ func ScanDirectory(rootPath string) ([]string, error) {
 				"__pycache__": true, ".venv": true, "venv": true,
 			}
 			if skipDirs[info.Name()] {
+				logger.Info("scanner", "ScanDirectory", "Skipping directory", info.Name())
 				return filepath.SkipDir
 			}
 			return nil
@@ -47,6 +53,7 @@ func ScanDirectory(rootPath string) ([]string, error) {
 		// Read file content
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
+			logger.Error("scanner", "ReadFile", err.Error(), path)
 			return nil
 		}
 
@@ -57,6 +64,11 @@ func ScanDirectory(rootPath string) ([]string, error) {
 		return nil
 	})
 
+	if err != nil {
+		logger.Error("scanner", "ScanDirectory", err.Error(), rootPath)
+	}
+
+	logger.Info("scanner", "ScanDirectory", "Scan complete", fmt.Sprintf("Found %d chunks", len(texts)))
 	return texts, err
 }
 

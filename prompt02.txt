@@ -1,0 +1,2 @@
+add function to monitor error from textfile , update all app to send error message to text file . after fixed remove
+    error to  solved_error.md

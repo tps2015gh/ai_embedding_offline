@@ -2,8 +2,10 @@ package vectorstore
 
 import (
 	"ai_embedding_offline/internal/embedding"
+	"ai_embedding_offline/internal/logger"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"math"
 	"sort"
 	"sync"
@@ -29,8 +31,11 @@ type VectorRecord struct {
 func InitDB() error {
 	var err error
 	once.Do(func() {
+		logger.Info("vectorstore", "InitDB", "Initializing database", "")
+
 		db, err = sql.Open("sqlite3", "data/vectors.db")
 		if err != nil {
+			logger.Error("vectorstore", "sql.Open", err.Error(), "")
 			return
 		}
 
@@ -45,6 +50,7 @@ func InitDB() error {
 			)
 		`)
 		if err != nil {
+			logger.Error("vectorstore", "CreateTable", err.Error(), "")
 			return
 		}
 
@@ -52,6 +58,12 @@ func InitDB() error {
 		_, err = db.Exec(`
 			CREATE INDEX IF NOT EXISTS idx_vectors_text ON vectors(text)
 		`)
+		if err != nil {
+			logger.Error("vectorstore", "CreateIndex", err.Error(), "")
+			return
+		}
+
+		logger.Info("vectorstore", "InitDB", "Database initialized successfully", "")
 	})
 
 	return err
@@ -61,12 +73,16 @@ func InitDB() error {
 func StoreVectors(vectors []embedding.Vector) error {
 	if db == nil {
 		if err := InitDB(); err != nil {
+			logger.Error("vectorstore", "StoreVectors", "Failed to initialize DB", err.Error())
 			return err
 		}
 	}
 
+	logger.Info("vectorstore", "StoreVectors", fmt.Sprintf("Storing %d vectors", len(vectors)), "")
+
 	tx, err := db.Begin()
 	if err != nil {
+		logger.Error("vectorstore", "tx.Begin", err.Error(), "")
 		return err
 	}
 
@@ -76,24 +92,42 @@ func StoreVectors(vectors []embedding.Vector) error {
 	`)
 	if err != nil {
 		tx.Rollback()
+		logger.Error("vectorstore", "tx.Prepare", err.Error(), "")
 		return err
 	}
 	defer stmt.Close()
 
+	successCount := 0
+	errorCount := 0
+
 	for _, v := range vectors {
-		embeddingJSON, _ := json.Marshal(v.Embedding)
+		embeddingJSON, err := json.Marshal(v.Embedding)
+		if err != nil {
+			logger.Error("vectorstore", "json.Marshal", err.Error(), v.Text[:min(len(v.Text), 30)])
+			errorCount++
+			continue
+		}
 
 		// Calculate 2D projection for visualization
 		posX, posY := project2D(v.Embedding)
 
 		_, err = stmt.Exec(v.Text, string(embeddingJSON), posX, posY)
 		if err != nil {
-			tx.Rollback()
-			return err
+			logger.Error("vectorstore", "stmt.Exec", err.Error(), v.Text[:min(len(v.Text), 30)])
+			errorCount++
+			continue
 		}
+		successCount++
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		logger.Error("vectorstore", "tx.Commit", err.Error(), "")
+		return err
+	}
+
+	logger.Info("vectorstore", "StoreVectors", fmt.Sprintf("Stored %d vectors, %d errors", successCount, errorCount), "")
+	return nil
 }
 
 // project2D projects high-dimensional vector to 2D for visualization
@@ -250,7 +284,16 @@ func GetVectorStats() (map[string]interface{}, error) {
 // CloseDB closes the database connection
 func CloseDB() error {
 	if db != nil {
+		logger.Info("vectorstore", "CloseDB", "Closing database connection", "")
 		return db.Close()
 	}
 	return nil
+}
+
+// min returns the minimum of two integers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
