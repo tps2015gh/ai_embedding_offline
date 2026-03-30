@@ -1,0 +1,2 @@
+i want to program web do like intellisense in ide . can you update to do this  , when 1 char type you guess next sentense and
+    display that to predict in n-gram

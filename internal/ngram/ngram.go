@@ -78,7 +78,7 @@ func (m *NGramModel) Predict(text string, limit int) []Prediction {
 
 	lastWord := words[len(words)-1]
 
-	// Try trigrams first (most specific)
+	// Try trigrams first (most specific) - predicts 1 word ahead
 	if len(words) >= 2 {
 		key := words[len(words)-2] + " " + lastWord
 		if trigramNext, ok := m.Trigrams[key]; ok {
@@ -104,10 +104,100 @@ func (m *NGramModel) Predict(text string, limit int) []Prediction {
 	return sortSuggestions(suggestions, limit)
 }
 
+// PredictPhrase returns multi-word phrase predictions
+func (m *NGramModel) PredictPhrase(text string, maxWords int, limit int) []PhrasePrediction {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	words := tokenize(text)
+	
+	if len(words) == 0 {
+		return []PhrasePrediction{}
+	}
+
+	phrases := make(map[string]float64)
+
+	// Generate phrases by chaining predictions
+	for i := 0; i < maxWords; i++ {
+		currentWords := words
+		phrase := ""
+		score := 0.0
+
+		for j := 0; j <= i; j++ {
+			var nextWord string
+			var wordScore float64
+
+			// Find next word using trigrams if possible
+			if len(currentWords) >= 2 {
+				key := currentWords[len(currentWords)-2] + " " + currentWords[len(currentWords)-1]
+				if trigramNext, ok := m.Trigrams[key]; ok && len(trigramNext) > 0 {
+					// Get best match
+					for w, c := range trigramNext {
+						if float64(c) > wordScore {
+							nextWord = w
+							wordScore = float64(c) * 3.0
+						}
+					}
+				}
+			}
+
+			// Fallback to bigrams
+			if nextWord == "" {
+				lastWord := currentWords[len(currentWords)-1]
+				if bigramNext, ok := m.Bigrams[lastWord]; ok && len(bigramNext) > 0 {
+					for w, c := range bigramNext {
+						if float64(c) > wordScore {
+							nextWord = w
+							wordScore = float64(c) * 2.0
+						}
+					}
+				}
+			}
+
+			if nextWord == "" {
+				break
+			}
+
+			if phrase != "" {
+				phrase += " "
+			}
+			phrase += nextWord
+			score += wordScore
+			currentWords = append(currentWords, nextWord)
+		}
+
+		if phrase != "" {
+			phrases[phrase] = score
+		}
+	}
+
+	// Convert to sorted list
+	var preds []PhrasePrediction
+	for phrase, score := range phrases {
+		preds = append(preds, PhrasePrediction{Phrase: phrase, Score: score})
+	}
+
+	sort.Slice(preds, func(i, j int) bool {
+		return preds[i].Score > preds[j].Score
+	})
+
+	if len(preds) > limit {
+		preds = preds[:limit]
+	}
+
+	return preds
+}
+
 // Prediction represents a word suggestion
 type Prediction struct {
 	Word  string  `json:"word"`
 	Score float64 `json:"score"`
+}
+
+// PhrasePrediction represents a multi-word phrase suggestion
+type PhrasePrediction struct {
+	Phrase string  `json:"phrase"`
+	Score  float64 `json:"score"`
 }
 
 func (m *NGramModel) getTopUnigrams(limit int) []Prediction {

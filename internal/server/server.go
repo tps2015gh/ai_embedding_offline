@@ -57,6 +57,7 @@ func StartServer(addr string) error {
 	http.HandleFunc("/api/stats", handleStats)
 	http.HandleFunc("/api/suggest", handleSuggest)
 	http.HandleFunc("/api/ngram/predict", handleNGramPredict)
+	http.HandleFunc("/api/ngram/predict-phrase", handleNGramPredictPhrase)
 	http.HandleFunc("/api/ngram/stats", handleNGramStats)
 
 	logger.Info("server", "StartServer", "Server starting on "+addr, "")
@@ -287,4 +288,48 @@ func handleNGramStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendResponse(w, stats)
+}
+
+// handleNGramPredictPhrase handles multi-word phrase prediction
+func handleNGramPredictPhrase(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if r.Method != "POST" {
+		sendError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Text     string `json:"text"`
+		MaxWords int    `json:"maxWords"`
+		Limit    int    `json:"limit"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("server", "handleNGramPredictPhrase", "Invalid request", err.Error())
+		sendError(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.MaxWords <= 0 {
+		req.MaxWords = 3
+	}
+	if req.Limit <= 0 {
+		req.Limit = 5
+	}
+
+	// Load model if not loaded
+	if ngramModel == nil {
+		var err error
+		ngramModel, err = ngram.LoadModel("data/ngram_model.json")
+		if err != nil {
+			logger.Error("server", "handleNGramPredictPhrase", "Failed to load model", err.Error())
+			sendError(w, "Model not trained yet", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	phrases := ngramModel.PredictPhrase(req.Text, req.MaxWords, req.Limit)
+	logger.Info("server", "handleNGramPredictPhrase", fmt.Sprintf("Predicted %d phrases", len(phrases)), req.Text)
+	sendResponse(w, phrases)
 }

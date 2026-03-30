@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI IntelliSense - Code Predictor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #569cd6;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #6a9955;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .editor-container {
+            position: relative;
+            background: #1e1e1e;
+            border: 2px solid #3c3c3c;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .editor-wrapper {
+            position: relative;
+        }
+
+        #code-input {
+            width: 100%;
+            min-height: 300px;
+            background: transparent;
+            border: none;
+            color: #d4d4d4;
+            font-family: inherit;
+            font-size: 14px;
+            padding: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+        }
+
+        /* IntelliSense Popup */
+        #intellisense {
+            position: absolute;
+            background: #252526;
+            border: 1px solid #454545;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            min-width: 250px;
+        }
+
+        #intellisense.visible {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover,
+        .suggestion-item.selected {
+            background: #094771;
+        }
+
+        .suggestion-icon {
+            width: 20px;
+            height: 20px;
+            background: #4ec9b0;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #1e1e1e;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .suggestion-icon.function { background: #dcdcaa; }
+        .suggestion-icon.keyword { background: #569cd6; }
+        .suggestion-icon.variable { background: #9cdcfe; }
+        .suggestion-icon.text { background: #ce9178; }
+
+        .suggestion-word {
+            flex: 1;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .suggestion-score {
+            color: #808080;
+            font-size: 12px;
+        }
+
+        .suggestion-preview {
+            color: #6a9955;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #007acc;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-left {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-icon {
+            font-size: 16px;
+        }
+
+        /* Ghost Text (Inline Prediction) */
+        .ghost-text {
+            color: #6a995580;
+            pointer-events: none;
+        }
+
+        /* Loading Indicator */
+        .loading {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3c3c3c;
+            border-top-color: #569cd6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar */
+        #intellisense::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #intellisense::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        #intellisense::-webkit-scrollbar-thumb {
+            background: #454545;
+            border-radius: 5px;
+        }
+
+        #intellisense::-webkit-scrollbar-thumb:hover {
+            background: #569cd6;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #252526;
+            border-radius: 8px;
+            border: 1px solid #3c3c3c;
+        }
+
+        .info-panel h3 {
+            color: #569cd6;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-panel ul {
+            list-style: none;
+            color: #d4d4d4;
+            font-size: 13px;
+        }
+
+        .info-panel li {
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info-panel li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #6a9955;
+        }
+
+        .kbd {
+            background: #3c3c3c;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 AI IntelliSense</h1>
+        <p class="subtitle">Type code or text - Get AI predictions like VS Code</p>
+
+        <div class="editor-container">
+            <div class="loading" id="loading"></div>
+            
+            <div class="editor-wrapper">
+                <textarea 
+                    id="code-input" 
+                    placeholder="Start typing code or text...&#10;&#10;Try: func, if, SELECT, import, const"
+                    spellcheck="false"
+                    autocomplete="off"
+                ></textarea>
+                
+                <div id="intellisense"></div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="status-item">
+                    <span class="status-icon">📊</span>
+                    <span id="model-stats">Loading...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-icon">⌨️</span>
+                    <span id="char-count">0 chars</span>
+                </div>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">🟢</span>
+                <span>Ready</span>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h3>Keyboard Shortcuts</h3>
+            <ul>
+                <li><span class="kbd">↑</span> <span class="kbd">↓</span> Navigate suggestions</li>
+                <li><span class="kbd">Enter</span> or <span class="kbd">Tab</span> Accept selected suggestion</li>
+                <li><span class="kbd">Esc</span> Close suggestions</li>
+                <li>Start typing after acceptance to continue</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('code-input');
+        const intellisense = document.getElementById('intellisense');
+        const loading = document.getElementById('loading');
+        const modelStats = document.getElementById('model-stats');
+        const charCount = document.getElementById('char-count');
+
+        let predictions = [];
+        let selectedIndex = 0;
+        let debounceTimer = null;
+        let isNavigating = false;
+
+        // Load model stats
+        fetch('/api/ngram/stats')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    modelStats.textContent = `${data.data.total_words.toLocaleString()} words trained`;
+                }
+            });
+
+        // Input handler with debounce
+        input.addEventListener('input', (e) => {
+            charCount.textContent = `${input.value.length} chars`;
+            
+            clearTimeout(debounceTimer);
+            
+            const text = input.value.trim();
+            if (text.length < 1) {
+                hideIntellisense();
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                predict(text);
+            }, 150); // 150ms debounce
+        });
+
+        // Keyboard navigation
+        input.addEventListener('keydown', (e) => {
+            if (intellisense.classList.contains('visible')) {
+                switch(e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, predictions.length - 1);
+                        updateSelection();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, 0);
+                        updateSelection();
+                        break;
+                    case 'Enter':
+                    case 'Tab':
+                        e.preventDefault();
+                        if (predictions[selectedIndex]) {
+                            acceptPrediction(predictions[selectedIndex].word);
+                        }
+                        break;
+                    case 'Escape':
+                        hideIntellisense();
+                        break;
+                }
+            }
+        });
+
+        // Predict function
+        async function predict(text) {
+            loading.classList.add('visible');
+
+            try {
+                // Get phrase predictions (multi-word)
+                const response = await fetch('/api/ngram/predict-phrase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, maxWords: 3, limit: 6 })
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    predictions = result.data.map(p => ({
+                        word: p.phrase,
+                        score: p.score,
+                        isPhrase: true
+                    }));
+                    selectedIndex = 0;
+                    showIntellisense(predictions);
+                } else {
+                    hideIntellisense();
+                }
+            } catch (error) {
+                console.error('Prediction failed:', error);
+            } finally {
+                loading.classList.remove('visible');
+            }
+        }
+
+        // Show IntelliSense popup
+        function showIntellisense(items) {
+            intellisense.innerHTML = items.map((item, index) => `
+                <div class="suggestion-item ${index === 0 ? 'selected' : ''}" 
+                     data-index="${index}"
+                     data-word="${escapeHtml(item.word)}"
+                     onclick="acceptPrediction('${escapeHtml(item.word)}')">
+                    <div class="suggestion-icon ${item.isPhrase ? 'text' : getSuggestionType(item.word)}">${item.isPhrase ? '📝' : (item.word[0]?.toUpperCase() || '?')}</div>
+                    <span class="suggestion-word">${escapeHtml(item.word)}</span>
+                    <span class="suggestion-score">${item.score.toFixed(1)}</span>
+                    ${item.isPhrase ? '<span class="suggestion-preview">phrase</span>' : ''}
+                </div>
+            `).join('');
+
+            // Position popup
+            const cursorPos = getCaretCoordinates(input);
+            intellisense.style.left = `${cursorPos.left}px`;
+            intellisense.style.top = `${cursorPos.top + 25}px`;
+            
+            intellisense.classList.add('visible');
+        }
+
+        // Hide IntelliSense
+        function hideIntellisense() {
+            intellisense.classList.remove('visible');
+            predictions = [];
+            selectedIndex = 0;
+        }
+
+        // Update selection highlight
+        function updateSelection() {
+            const items = intellisense.querySelectorAll('.suggestion-item');
+            items.forEach((item, index) => {
+                item.classList.toggle('selected', index === selectedIndex);
+            });
+            
+            // Scroll into view
+            const selected = items[selectedIndex];
+            if (selected) {
+                selected.scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        // Accept prediction
+        function acceptPrediction(word) {
+            const currentText = input.value;
+            const trimmed = currentText.trimEnd();
+            const words = trimmed.split(/\s+/);
+            const lastWord = words[words.length - 1] || '';
+            
+            // For phrases, just append after removing partial word
+            if (lastWord && word.includes(' ')) {
+                // User typed partial word, replace it with phrase
+                const newText = trimmed.slice(0, -lastWord.length) + word;
+                input.value = newText + ' ';
+            } else if (lastWord) {
+                // Replace last word with single word prediction
+                const newText = trimmed.slice(0, -lastWord.length) + word;
+                input.value = newText + ' ';
+            } else {
+                // No partial word, just append
+                input.value = currentText + word + ' ';
+            }
+            
+            charCount.textContent = `${input.value.length} chars`;
+            hideIntellisense();
+            input.focus();
+        }
+
+        // Get suggestion type for icon styling
+        function getSuggestionType(word) {
+            const lower = word.toLowerCase();
+            if (['func', 'function', 'def', 'fn'].some(k => lower.startsWith(k))) return 'function';
+            if (['if', 'else', 'for', 'while', 'return', 'const', 'let', 'var'].includes(lower)) return 'keyword';
+            if (['select', 'from', 'where', 'insert', 'update'].includes(lower)) return 'keyword';
+            if (word[0] === word[0]?.toUpperCase()) return 'variable';
+            return 'text';
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Get caret coordinates (simplified)
+        function getCaretCoordinates(textarea) {
+            const rect = textarea.getBoundingClientRect();
+            return {
+                left: 15,
+                top: Math.floor(textarea.scrollTop + (textarea.value.split('\n').length - 1) * 22.4)
+            };
+        }
+
+        // Click outside to close
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.editor-container')) {
+                hideIntellisense();
+            }
+        });
+    </script>
+</body>
+</html>
