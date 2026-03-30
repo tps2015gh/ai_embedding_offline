@@ -1,7 +1,7 @@
 # Documentation Index / ดัชนีเอกสาร
 
 **Last Updated:** 2025-03-30  
-**Total MD Files:** 11  
+**Total MD Files:** 13  
 **All Files Linked in README.md:** ✅ Yes
 
 ---
@@ -13,14 +13,16 @@
 | 1 | **README.md** | Root | N/A (main file) | Main documentation (EN/TH) | ⭐⭐⭐ |
 | 2 | **TEAM.md** | Root | ✅ [TEAM.md](TEAM.md) | Agent registry & Qwen's opinion | ⭐⭐ |
 | 3 | **TODO.md** | Root | ✅ [TODO.md](TODO.md) | Future improvements & BCP | ⭐⭐ |
-| 4 | **AI_DEV_GUIDE.md** | docs/ | ✅ [docs/AI_DEV_GUIDE.md](docs/AI_DEV_GUIDE.md) | **Start here for developers!** | ⭐⭐⭐ |
-| 5 | **INTELLISENSE.md** | docs/ | ✅ [docs/INTELLISENSE.md](docs/INTELLISENSE.md) | IntelliSense feature guide | ⭐⭐ |
-| 6 | **NGRAM_PREDICTOR.md** | docs/ | ✅ [docs/NGRAM_PREDICTOR.md](docs/NGRAM_PREDICTOR.md) | N-gram model documentation | ⭐⭐ |
-| 7 | **BEGINNER_GUIDE.md** | docs/ | ✅ [docs/BEGINNER_GUIDE.md](docs/BEGINNER_GUIDE.md) | Beginner explanations (EN/TH) | ⭐⭐⭐ |
-| 8 | **DATASET_SUMMARY.md** | docs/ | ✅ [docs/DATASET_SUMMARY.md](docs/DATASET_SUMMARY.md) | Dataset statistics | ⭐ |
-| 9 | **VECTOR_DB_USAGE.md** | docs/ | ✅ [docs/VECTOR_DB_USAGE.md](docs/VECTOR_DB_USAGE.md) | Vector database guide | ⭐ |
-| 10 | **ABSTRACT.md** | docs/ | ✅ [docs/ABSTRACT.md](docs/ABSTRACT.md) | Technical abstract | ⭐ |
-| 11 | **SOLVED_ERRORS.md** | docs/ | ✅ [docs/SOLVED_ERRORS.md](docs/SOLVED_ERRORS.md) | Error tracking | ⭐ |
+| 4 | **setup.bat** | Root | N/A (script) | Automated installer | ⭐⭐⭐ |
+| 5 | **INSTALL.md** | docs/ | ✅ [docs/INSTALL.md](docs/INSTALL.md) | Installation guide (EN/TH) | ⭐⭐⭐ |
+| 6 | **AI_DEV_GUIDE.md** | docs/ | ✅ [docs/AI_DEV_GUIDE.md](docs/AI_DEV_GUIDE.md) | **Start here for developers!** | ⭐⭐⭐ |
+| 7 | **INTELLISENSE.md** | docs/ | ✅ [docs/INTELLISENSE.md](docs/INTELLISENSE.md) | IntelliSense feature guide | ⭐⭐ |
+| 8 | **NGRAM_PREDICTOR.md** | docs/ | ✅ [docs/NGRAM_PREDICTOR.md](docs/NGRAM_PREDICTOR.md) | N-gram model documentation | ⭐⭐ |
+| 9 | **BEGINNER_GUIDE.md** | docs/ | ✅ [docs/BEGINNER_GUIDE.md](docs/BEGINNER_GUIDE.md) | Beginner explanations (EN/TH) | ⭐⭐⭐ |
+| 10 | **DATASET_SUMMARY.md** | docs/ | ✅ [docs/DATASET_SUMMARY.md](docs/DATASET_SUMMARY.md) | Dataset statistics | ⭐ |
+| 11 | **VECTOR_DB_USAGE.md** | docs/ | ✅ [docs/VECTOR_DB_USAGE.md](docs/VECTOR_DB_USAGE.md) | Vector database guide | ⭐ |
+| 12 | **ABSTRACT.md** | docs/ | ✅ [docs/ABSTRACT.md](docs/ABSTRACT.md) | Technical abstract | ⭐ |
+| 13 | **SOLVED_ERRORS.md** | docs/ | ✅ [docs/SOLVED_ERRORS.md](docs/SOLVED_ERRORS.md) | Error tracking | ⭐ |
 
 ---
 
@@ -52,13 +54,14 @@
 
 | Category | Files | Status |
 |----------|-------|--------|
+| **Installation** | setup.bat, INSTALL.md | ✅ Complete |
 | **Getting Started** | README.md, BEGINNER_GUIDE.md | ✅ Complete |
 | **Developer Guide** | AI_DEV_GUIDE.md, INTELLISENSE.md | ✅ Complete |
 | **Technical Docs** | NGRAM_PREDICTOR.md, VECTOR_DB_USAGE.md, ABSTRACT.md | ✅ Complete |
 | **Project Info** | TEAM.md, TODO.md, DATASET_SUMMARY.md | ✅ Complete |
 | **Support** | SOLVED_ERRORS.md | ✅ Complete |
 
-**Total Coverage:** 11/11 files documented ✅
+**Total Coverage:** 13/13 files documented ✅
 
 ---
 
@@ -67,6 +70,7 @@
 **All internal links verified:** ✅
 
 ```
+✅ [INSTALL.md](docs/INSTALL.md)
 ✅ [AI_DEV_GUIDE.md](docs/AI_DEV_GUIDE.md)
 ✅ [INTELLISENSE.md](docs/INTELLISENSE.md)
 ✅ [NGRAM_PREDICTOR.md](docs/NGRAM_PREDICTOR.md)
@@ -130,6 +134,10 @@
 │  AI Embedding Offline - Documentation Map          │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
+│  setup.bat (Installer)                              │
+│     │                                               │
+│  INSTALL.md (Guide)                                 │
+│     │                                               │
 │  README.md (Main)                                   │
 │     │                                               │
 │     ├── For Developers → AI_DEV_GUIDE.md           │
@@ -143,7 +151,7 @@
 │     ├── Team → TEAM.md                             │
 │     └── Future → TODO.md                           │
 │                                                     │
-│  All files: 11 | All linked: ✅ | Bilingual: 91%   │
+│  All files: 13 | All linked: ✅ | Bilingual: 92%   │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -152,4 +160,5 @@
 **Verification Status:** ✅ All MD files are properly linked in README.md
 
 **Created by:** Qwen-Code (Qwen-2.5-Coder)  
-**Date:** 2025-03-30
+**Date:** 2025-03-30  
+**Files:** 13 MD + 1 BAT (setup.bat)
