@@ -17,7 +17,15 @@ AI Embedding Offline is a vector-based text similarity system that creates 40-di
 
 ### Features
 
-#### 🔮 Text Prediction (NEW!)
+#### 🔮 AI IntelliSense (NEW!)
+- **IDE-style prediction** like VS Code
+- Real-time suggestions as you type
+- Multi-word phrase predictions
+- Keyboard navigation (↑↓ Tab Enter Esc)
+- Dark theme UI
+- **Try it**: http://localhost:8080/intellisense.html
+
+#### 📊 Text Prediction
 - N-gram based next word prediction
 - Small model size (~100KB - 10MB)
 - Fast predictions (milliseconds)
@@ -68,6 +76,7 @@ go run cmd/main.go serve
 ```
 
 Then open:
+- **AI IntelliSense**: http://localhost:8080/intellisense.html (Recommended!)
 - **Text Predictor**: http://localhost:8080/predict.html
 - **Vector Visualizer**: http://localhost:8080/
 
