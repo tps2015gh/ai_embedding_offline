@@ -1,0 +1,53 @@
+# Sensitive Data
+*.env
+.env.local
+.env.production
+*.key
+*.pem
+*.crt
+secrets/
+credentials/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/vectors.db
+data/*.db
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+tmp/
+
+# Data cache (may contain sensitive info)
+data/cache/
+data/raw_texts/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Test data with potential sensitive info
+data/test_*.txt

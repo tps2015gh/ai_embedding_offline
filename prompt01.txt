@@ -1,0 +1,63 @@
+each step create skill to minimize use of token first . 
+each step if appropriate  create agent to do job . 
+skill driven is main approach to minimize token cost . 
+
+this have agent 
+1 lead programmer 
+2 web developer 
+3 debugger 
+4 server developer 
+5 go lang ,server developer  
+6 UX/UI 
+
+token is money in this company , saving it .
+in team each agent have other job ,so call then when only nesseary 
+
+for some step add TODO.MD for other AI if have to take this for BCP
+
+each time start program ,check TEAM.MD  that have your model registered, if not add your model 
+and add you job your model name , your agent , your work that already done . your job response 
+add datetime that you start take 
+
+in talk each agent use small token and less talk 
+append what talking in file , not repeat read just append not read . just log not read this file 
+
+
+organize folder to easy to manage and use folder for best pattern 
+organize folder to easy to manage as company 
+
+read all code and text in  folder and subfolder  c:\dev\ and 
+read all code and text in folder C:\Users\admin\Documents
+read all code and text in folder C:\Users\admin\Downloads
+
+do separate and extract and slit it to be learning from all of this 
+with cosine similarity in mind 
+
+create all db vector that mirror and interpolate  what happen in that happen in that data 
+with vector similarity in mind , distance of vector position in mind  
+
+then add program to enter word and sentence as web app html 
+this server as golang and read this database to depict what distance each other 
+then draw all in screen 2D  each note have text 12px font name  
+
+this can zoom and can pan 
+each node have  postion x y z ... hi dimension for each 
+
+i want dimention as 40 , 
+
+optimize how to calulate distance by sorting first and filter first , for fast calulaion . 
+
+if have to do , install small vector db and use it , add document how to use this too 
+also add abstract  
+
+all doc is MD file  , create README.MD 
+
+purpose is for upload this to git repository so ,  check Private Data / sensitive data not in this git 
+add  git 
+
+document have both English and thai  
+i not good in English , not good in AI embedding , not good in vector similarity describe me  
+
+then after i type text to this html page 
+show next word that may be to  be  near  and that may hint what to do next 
+then if possible you create way to interpret that. 

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Embedding Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #canvas:active {
+            cursor: grabbing;
+        }
+
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            min-width: 320px;
+        }
+
+        #ui-panel h1 {
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: border-color 0.3s;
+        }
+
+        #search-input:focus {
+            outline: none;
+            border-color: #4a90d9;
+        }
+
+        #search-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4a90d9;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #search-btn:hover {
+            background: #357abd;
+        }
+
+        #suggestions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        #suggestions h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        #suggestion-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .suggestion-chip {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: #4a90d9;
+            color: white;
+        }
+
+        #stats {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        #zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .zoom-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .zoom-btn:first-child {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #4a90d9;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .node-label {
+            font-size: 12px;
+            fill: #ffffff;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        #highlighted-info {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 300px;
+            font-size: 12px;
+            z-index: 200;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <svg id="canvas"></svg>
+
+        <div id="ui-panel">
+            <h1>🔍 AI Embedding Explorer</h1>
+            <input type="text" id="search-input" placeholder="Enter text to find similar vectors...">
+            <button id="search-btn">Search Similar</button>
+
+            <div id="suggestions">
+                <h3>💡 Next Word Suggestions</h3>
+                <div id="suggestion-list"></div>
+            </div>
+
+            <div id="stats">
+                <div>Total Vectors: <span id="vector-count">0</span></div>
+                <div>Dimensions: 40</div>
+            </div>
+        </div>
+
+        <div id="zoom-controls">
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <button class="zoom-btn" onclick="resetView()">⟲</button>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Loading vectors...</p>
+        </div>
+
+        <div id="highlighted-info"></div>
+    </div>
+
+    <script>
+        // State
+        let vectors = [];
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let lastX, lastY;
+        let highlightedNodes = new Set();
+
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const container = document.getElementById('container');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVectors();
+            setupEventListeners();
+        });
+
+        // Load all vectors from server
+        async function loadVectors() {
+            showLoading(true);
+            try {
+                const response = await fetch('/api/vectors');
+                const result = await response.json();
+
+                if (result.success) {
+                    vectors = result.data;
+                    document.getElementById('vector-count').textContent = vectors.length;
+                    render();
+                }
+            } catch (error) {
+                console.error('Failed to load vectors:', error);
+            }
+            showLoading(false);
+        }
+
+        // Render all vectors
+        function render() {
+            canvas.innerHTML = '';
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Create group for transform
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${width/2 + offsetX}, ${height/2 + offsetY}) scale(${scale})`);
+            canvas.appendChild(g);
+
+            // Draw vectors
+            vectors.forEach((vector, index) => {
+                const isHighlighted = highlightedNodes.has(index);
+
+                // Create circle node
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', vector.position_x);
+                circle.setAttribute('cy', vector.position_y);
+                circle.setAttribute('r', isHighlighted ? 8 : 5);
+                circle.setAttribute('fill', isHighlighted ? '#ff6b6b' : '#4a90d9');
+                circle.setAttribute('opacity', isHighlighted ? 1 : 0.7);
+                circle.setAttribute('data-index', index);
+                circle.style.cursor = 'pointer';
+
+                circle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showNodeInfo(vector, e.clientX, e.clientY);
+                });
+
+                g.appendChild(circle);
+
+                // Create text label (12px font as specified)
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', parseFloat(vector.position_x) + 10);
+                text.setAttribute('y', parseFloat(vector.position_y) + 4);
+                text.setAttribute('class', 'node-label');
+                text.setAttribute('font-size', '12px');
+                text.textContent = truncateText(vector.text, 30);
+                text.style.pointerEvents = 'none';
+                text.style.display = scale > 0.8 ? 'block' : 'none';
+
+                g.appendChild(text);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Pan functionality
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastX = e.clientX;
+                lastY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const dx = e.clientX - lastX;
+                const dy = e.clientY - lastY;
+
+                offsetX += dx;
+                offsetY += dy;
+
+                lastX = e.clientX;
+                lastY = e.clientY;
+
+                updateTransform();
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.style.cursor = 'grab';
+            });
+
+            // Zoom with mouse wheel
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                scale = Math.max(0.1, Math.min(5, scale * delta));
+                updateTransform();
+            });
+
+            // Search
+            document.getElementById('search-btn').addEventListener('click', performSearch);
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+        }
+
+        // Update SVG transform
+        function updateTransform() {
+            const g = canvas.querySelector('g');
+            if (g) {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                g.setAttribute('transform', `translate(${width/2 + offsetX}, ${height/2 + offsetY}) scale(${scale})`);
+            }
+        }
+
+        // Zoom controls
+        function zoomIn() {
+            scale = Math.min(5, scale * 1.2);
+            updateTransform();
+        }
+
+        function zoomOut() {
+            scale = Math.max(0.1, scale * 0.8);
+            updateTransform();
+        }
+
+        function resetView() {
+            scale = 1;
+            offsetX = 0;
+            offsetY = 0;
+            highlightedNodes.clear();
+            updateTransform();
+            render();
+        }
+
+        // Perform similarity search
+        async function performSearch() {
+            const query = document.getElementById('search-input').value;
+            if (!query) return;
+
+            showLoading(true);
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, limit: 20 })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Highlight similar nodes
+                    highlightedNodes.clear();
+                    result.data.forEach(item => {
+                        const index = vectors.findIndex(v => v.id === item.id);
+                        if (index !== -1) {
+                            highlightedNodes.add(index);
+                        }
+                    });
+
+                    render();
+
+                    // Generate suggestions
+                    generateSuggestions(query, result.data);
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
+
+            showLoading(false);
+        }
+
+        // Generate word suggestions
+        async function generateSuggestions(query, similarVectors) {
+            const suggestionList = document.getElementById('suggestion-list');
+            suggestionList.innerHTML = '';
+
+            // Extract words from similar vectors
+            const wordFreq = {};
+            similarVectors.forEach(vector => {
+                const words = vector.text.split(/\s+/);
+                words.forEach(word => {
+                    if (word.length > 2) {
+                        wordFreq[word] = (wordFreq[word] || 0) + 1;
+                    }
+                });
+            });
+
+            // Sort by frequency
+            const sortedWords = Object.entries(wordFreq)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            sortedWords.forEach(([word, count]) => {
+                const chip = document.createElement('span');
+                chip.className = 'suggestion-chip';
+                chip.textContent = word;
+                chip.addEventListener('click', () => {
+                    document.getElementById('search-input').value = word;
+                    performSearch();
+                });
+                suggestionList.appendChild(chip);
+            });
+        }
+
+        // Show node information
+        function showNodeInfo(vector, x, y) {
+            const info = document.getElementById('highlighted-info');
+            info.innerHTML = `
+                <strong>Text:</strong><br>
+                <span style="color: #666;">${escapeHtml(vector.text)}</span><br><br>
+                <strong>Position:</strong> (${vector.position_x.toFixed(2)}, ${vector.position_y.toFixed(2)})
+            `;
+            info.style.left = (x + 10) + 'px';
+            info.style.top = (y + 10) + 'px';
+            info.style.display = 'block';
+
+            setTimeout(() => {
+                info.style.display = 'none';
+            }, 5000);
+        }
+
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function truncateText(text, maxLength) {
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
