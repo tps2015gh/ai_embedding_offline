@@ -44,10 +44,18 @@ func main() {
 		log.Println("Scanning directories...")
 		logger.Info("main", "scan", "Starting directory scan", "")
 
+		// Default scan directories - customize these for your system
+		// You can also pass paths as arguments: ai_embedding.exe scan C:\my\code D:\projects
 		dirs := []string{
 			"c:\\dev\\",
 			"C:\\Users\\admin\\Documents",
 			"C:\\Users\\admin\\Downloads",
+		}
+
+		// Override with command line arguments if provided
+		if len(os.Args) > 2 {
+			dirs = os.Args[2:]
+			log.Printf("Scanning custom paths: %v", dirs)
 		}
 
 		// Create progress channel

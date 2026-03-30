@@ -1,0 +1,1 @@
+check all MD file in project linked by README.MD

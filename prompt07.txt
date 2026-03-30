@@ -1,0 +1,2 @@
+ you as ( qwen , gemini , .. other else )   model add your role and what you do in this project , in some session .
+  add opinion about this program in opinion of you and what be next
