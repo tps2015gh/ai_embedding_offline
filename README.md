@@ -33,6 +33,15 @@ go get github.com/mattn/go-sqlite3
 
 ### Usage
 
+**Option 1: Using the executable (Windows)**
+
+```bash
+# Run the quick start script
+start.bat
+```
+
+**Option 2: Using Go commands**
+
 ```bash
 # 1. Initialize the vector database
 go run cmd/main.go init
