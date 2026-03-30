@@ -13,6 +13,8 @@ AI Embedding Offline is a vector-based text similarity system that creates 40-di
 
 **40 Dimensions** หมายถึง เวกเตอร์แต่ละอันมีตัวเลข 40 ตัว ซึ่งแต่ละตัวแทน "ลักษณะ" ของข้อความ
 
+📖 **New to AI embeddings?** Read our [Beginner's Guide](docs/BEGINNER_GUIDE.md) for simple explanations in English and Thai!
+
 ### Features
 - 📁 Scans code and text files from multiple directories
 - 🔢 Creates 40-dimensional vector embeddings
