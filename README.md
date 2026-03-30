@@ -144,6 +144,29 @@ The distance calculation is optimized by:
 | `/api/vectors` | GET | Get all vectors for visualization |
 | `/api/stats` | GET | Get database statistics |
 | `/api/suggest` | POST | Get word suggestions |
+| `/api/ngram/predict` | POST | Get next word prediction |
+| `/api/ngram/predict-phrase` | POST | Get multi-word phrase prediction |
+| `/api/ngram/stats` | GET | Get n-gram model statistics |
+
+### Documentation
+
+**For AI Developers:**
+- **📘 [AI_DEV_GUIDE.md](docs/AI_DEV_GUIDE.md)** - Start here! Complete guide for next developers
+- **📗 [INTELLISENSE.md](docs/INTELLISENSE.md)** - IntelliSense feature documentation
+- **📙 [NGRAM_PREDICTOR.md](docs/NGRAM_PREDICTOR.md)** - N-gram model guide
+
+**For Users:**
+- **📕 [BEGINNER_GUIDE.md](docs/BEGINNER_GUIDE.md)** - Simple explanations (EN/TH)
+- **📔 [DATASET_SUMMARY.md](docs/DATASET_SUMMARY.md)** - Dataset statistics
+
+**Technical:**
+- **📓 [VECTOR_DB_USAGE.md](docs/VECTOR_DB_USAGE.md)** - Vector database guide
+- **📜 [ABSTRACT.md](docs/ABSTRACT.md)** - Technical abstract
+- **📋 [SOLVED_ERRORS.md](docs/SOLVED_ERRORS.md)** - Error tracking
+
+**Project:**
+- **📝 [TODO.md](TODO.md)** - Future improvements
+- **👥 [TEAM.md](TEAM.md)** - Agent registry
 
 ### Security
 
