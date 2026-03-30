@@ -1,5 +1,11 @@
 # Abstract / บทคัดย่อ
 
+**Created:** 2025-03-30 23:08 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-30 23:15 (Thai Time UTC+7)  
+**Development Time:** ~7 minutes  
+
+---
+
 ## English
 
 ### AI Embedding Offline: A Vector-Based Text Similarity System

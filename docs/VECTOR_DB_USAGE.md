@@ -1,5 +1,11 @@
 # Vector Database Usage Guide
 
+**Created:** 2025-03-30 23:05 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-30 23:20 (Thai Time UTC+7)  
+**Development Time:** ~15 minutes  
+
+---
+
 ## English Version
 
 ### Overview

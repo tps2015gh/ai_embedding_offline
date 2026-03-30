@@ -1,5 +1,11 @@
 # Dataset Summary / สรุปข้อมูล
 
+**Created:** 2025-03-30 23:40 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-30 23:45 (Thai Time UTC+7)  
+**Development Time:** ~5 minutes  
+
+---
+
 ## English Version
 
 ### Dataset Size Summary

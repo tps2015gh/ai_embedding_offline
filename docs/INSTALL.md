@@ -1,5 +1,11 @@
 # Installation Guide / คู่มือการติดตั้ง
 
+**Created:** 2025-03-31 00:12 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-31 00:15 (Thai Time UTC+7)  
+**Development Time:** ~3 minutes  
+
+---
+
 ## Quick Start (Windows) / เริ่มต้นอย่างรวดเร็ว
 
 ### Option 1: Automated Setup (Recommended) ⭐

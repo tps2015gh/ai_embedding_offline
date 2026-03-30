@@ -1,5 +1,12 @@
 # AI Embedding Offline
 
+**Created:** 2025-03-30 23:00 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-31 00:18 (Thai Time UTC+7)  
+**Total Development Time:** ~2 hours  
+**Git Commits:** 20
+
+---
+
 ## English Version
 
 ### Overview

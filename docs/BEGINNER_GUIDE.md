@@ -1,5 +1,11 @@
 # Beginner's Guide / คู่มือสำหรับผู้เริ่มต้น
 
+**Created:** 2025-03-30 23:15 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-30 23:25 (Thai Time UTC+7)  
+**Development Time:** ~10 minutes  
+
+---
+
 ## English Version
 
 ### What is AI Embedding? (Explained Simply)

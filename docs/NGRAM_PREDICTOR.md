@@ -1,5 +1,11 @@
 # N-gram Text Predictor / การทำนายข้อความด้วย N-gram
 
+**Created:** 2025-03-30 23:30 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-30 23:50 (Thai Time UTC+7)  
+**Development Time:** ~20 minutes  
+
+---
+
 ## English Version
 
 ### What is N-gram?

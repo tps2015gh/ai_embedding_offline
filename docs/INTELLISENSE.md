@@ -1,5 +1,11 @@
 # AI IntelliSense - IDE-style Code Prediction
 
+**Created:** 2025-03-30 23:55 (Thai Time UTC+7)  
+**Last Updated:** 2025-03-31 00:10 (Thai Time UTC+7)  
+**Development Time:** ~15 minutes  
+
+---
+
 ## English Version
 
 ### What is AI IntelliSense?
